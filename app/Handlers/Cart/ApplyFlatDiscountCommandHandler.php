@@ -12,7 +12,7 @@ use InvalidArgumentException;
 
 class ApplyFlatDiscountCommandHandler
 {
-    public function handle(ApplyFlatDiscountCommand $command): DiscountedCartResponse
+    public function __invoke(ApplyFlatDiscountCommand $command): DiscountedCartResponse
     {
         $productIds = $command->getProductIds();
         $discount = $command->getDiscount();

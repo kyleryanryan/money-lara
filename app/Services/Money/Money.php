@@ -10,6 +10,8 @@ use InvalidArgumentException;
 
 class Money extends AbstractMoney
 {
+    public const STORAGE_PRECISION = 6;
+
     public function __construct(int $amount, Currency $currency)
     {
         parent::__construct($amount, $currency);
@@ -17,14 +19,11 @@ class Money extends AbstractMoney
 
     public function discount(float $percentage): Money
     {
-        // Calculate the discount factor from the percentage (e.g., 10% becomes 0.90).
         $factor = 1 - ($percentage / 100);
     
-        // Convert the factor to a Money object to keep consistency in using Money objects.
         $factorInSmallestUnit = (int) round($factor * pow(10, self::STORAGE_PRECISION));
         $factorMoney = new Money($factorInSmallestUnit, $this->currency);
-    
-        // Use multiply with a Money object representing the factor.
+
         return $this->multiply($factorMoney);
     }
 

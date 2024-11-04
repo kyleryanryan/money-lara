@@ -11,7 +11,8 @@ use InvalidArgumentException;
 
 class ApplyPercentDiscountCommandHandler
 {
-    public function handle(ApplyPercentDiscountCommand $command): DiscountedCartResponse
+
+    public function __invoke(ApplyPercentDiscountCommand $command): DiscountedCartResponse
     {
         $productIds = $command->getProductIds();
         $discountPercentage = $command->getDiscountPercentage();

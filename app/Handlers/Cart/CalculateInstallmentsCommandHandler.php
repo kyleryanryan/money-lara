@@ -12,7 +12,7 @@ use InvalidArgumentException;
 
 class CalculateInstallmentsCommandHandler
 {
-    public function handle(CalculateInstallmentsCommand $command): CalculateInstallmentsResponse
+    public function __invoke(CalculateInstallmentsCommand $command): CalculateInstallmentsResponse
     {
         $products = Product::whereIn('id', $command->getProductIds())->get();
 

@@ -9,7 +9,8 @@ use App\Services\Money\Money;
 
 class CreateProductCommandHandler
 {
-    public function handle(CreateProductCommand $command): CreateProductResponse
+
+    public function __invoke(CreateProductCommand $command): CreateProductResponse
     {
         $money = new Money($command->getPriceInSmallestUnit(), $command->getCurrency());
 

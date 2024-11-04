@@ -11,7 +11,7 @@ use InvalidArgumentException;
 
 class AddToCartWithQuantityCommandHandler
 {
-    public function handle(AddToCartWithQuantityCommand $command): AddToCartWithQuantityResponse
+    public function __invoke(AddToCartWithQuantityCommand $command): AddToCartWithQuantityResponse
     {
         $product = Product::findOrFail($command->getProductId());
 

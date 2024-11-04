@@ -10,7 +10,7 @@ use InvalidArgumentException;
 
 abstract class AbstractMoney
 {
-    public const STORAGE_PRECISION = 6;
+    public const STORAGE_PRECISION = 2;
 
     public function __construct(
         protected int $amount,

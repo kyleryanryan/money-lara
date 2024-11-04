@@ -9,6 +9,7 @@ use InvalidArgumentException;
 
 class ConvertProductCurrencyCommandHandler
 {
+
     /**
      * Summary of handle
      * 
@@ -16,7 +17,7 @@ class ConvertProductCurrencyCommandHandler
      * @throws \InvalidArgumentException
      * @return ConvertProductCurrencyResponse
      */
-    public function handle(ConvertProductCurrencyCommand $command): ConvertProductCurrencyResponse
+    public function __invoke(ConvertProductCurrencyCommand $command): ConvertProductCurrencyResponse
     {
         $product = Product::findOrFail($command->getProductId());
         $money = $product->getMoney();

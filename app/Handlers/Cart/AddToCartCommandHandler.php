@@ -11,7 +11,7 @@ use InvalidArgumentException;
 
 class AddToCartCommandHandler
 {
-    public function handle(AddToCartCommand $command): CartResponse
+    public function __invoke(AddToCartCommand $command): CartResponse
     {
         $productIds = $command->getProductIds();
         $products = Product::whereIn('id', $productIds)->get();

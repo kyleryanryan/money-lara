@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\CommandBus;
 use App\Commands\Product\ConvertProductCurrencyCommand;
 use App\Commands\Product\CreateProductCommand;
 use App\Services\Money\Money;
 use App\Enums\Currency;
 use App\Handlers\Product\ConvertProductCurrencyCommandHandler;
-use App\Handlers\Product\CreateProductCommandHandler;
 use App\Http\Requests\ConvertCurrencyRequest;
 use App\Http\Requests\CreateProductRequest;
 use App\Http\Responses\CreateProductResponse;
@@ -18,14 +18,15 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 class ProductController extends Controller
 {
+    public function __construct(private CommandBus $commandBus){}
+
     /**
-     * Method for storing the money object in the database
+     * Method for storing/handling the money object in the database
      * 
      * @param CreateProductRequest $request
-     * @param CreateProductCommandHandler $handler
      * @return CreateProductResponse
      */
-    public function store(CreateProductRequest $request, CreateProductCommandHandler $handler): CreateProductResponse
+    public function store(CreateProductRequest $request): CreateProductResponse
     {
         $priceInSmallestUnit = NumberHelper::floatToInt($request->input('price'), Money::STORAGE_PRECISION);
         $currency = Currency::from($request->input('currency'));
@@ -36,7 +37,7 @@ class ProductController extends Controller
             currency: $currency
         );
 
-        return $handler->handle($command);
+        return $this->commandBus->handle($command);
     }
 
     /**
@@ -47,13 +48,13 @@ class ProductController extends Controller
      * @param string $id
      * @return ConvertProductCurrencyResponse|JsonResponse
      */
-    public function convertPrice(ConvertCurrencyRequest $request, ConvertProductCurrencyCommandHandler $handler, string $id): ConvertProductCurrencyResponse|JsonResponse
+    public function convertPrice(ConvertCurrencyRequest $request, string $id): ConvertProductCurrencyResponse|JsonResponse
     {
         $targetCurrency = $request->getTargetCurrency();
         $command = new ConvertProductCurrencyCommand($id, $targetCurrency);
 
         try {
-            return $handler->handle($command);
+            return $this->commandBus->handle($command);
         } catch (InvalidArgumentException $e) {
             return response()->json(['error' => 'Conversion rate not available.'], 400);
         }
