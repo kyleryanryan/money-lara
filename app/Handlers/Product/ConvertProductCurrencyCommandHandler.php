@@ -5,6 +5,7 @@ namespace App\Handlers\Product;
 use App\Models\Product;
 use App\Commands\Product\ConvertProductCurrencyCommand;
 use App\Http\Responses\Product\ConvertProductCurrencyResponse;
+use App\Services\Money\Money;
 use InvalidArgumentException;
 
 class ConvertProductCurrencyCommandHandler
@@ -20,6 +21,8 @@ class ConvertProductCurrencyCommandHandler
     public function __invoke(ConvertProductCurrencyCommand $command): ConvertProductCurrencyResponse
     {
         $product = Product::findOrFail($command->getProductId());
+
+        /** @var Money $money */
         $money = $product->getMoney();
 
         if (!$money) {

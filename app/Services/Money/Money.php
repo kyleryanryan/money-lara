@@ -12,6 +12,8 @@ use App\Support\NumberHelper;
 class Money
 {
     public const STORAGE_PRECISION = 6;
+    private const REMAINDER_PRECISION = 6;
+    private int $remainder = 0;
 
     public function __construct(
         private int $amount,
@@ -19,17 +21,69 @@ class Money
     ){
     }
 
-    public function discount(float $percentage): Money
+    public function getRemainder(): int
+    {
+        return $this->remainder;
+    }
+
+    public function setRemainder(int $remainder): void
+    {
+        $this->remainder = $remainder;
+    }
+
+    public function multiply(Money $factor): self
+    {
+        $this->assertSameCurrency($factor);
+
+        // Convert both amounts to the decimal units and add remainders
+        $multiplier = ((float)"{$factor->getAmount()}.{$factor->getRemainder()}") / pow(10, self::STORAGE_PRECISION);;
+        $multiplicand = ((float)"{$this->amount}.{$this->remainder}") / pow(10, self::STORAGE_PRECISION);
+        $rawResult = $multiplier * $multiplicand;
+
+        $result = $rawResult * pow(10, self::STORAGE_PRECISION);
+        $integerPart = (int) $result;
+        $fractionalPart = (int) $result - $integerPart;
+        $result = new self($integerPart, $this->currency);
+
+        $result->setRemainder((int) $fractionalPart);
+
+        return $result;
+    }
+
+    public function divide(Money $divisor): self
+    {
+        $this->assertSameCurrency($divisor);
+    
+        if ($divisor->getAmount() === 0) {
+            throw new InvalidArgumentException('Division by zero is not allowed.');
+        }
+
+        $scaledAmount = $this->amount * pow(10, self::STORAGE_PRECISION) + $this->remainder;
+        $divisorAmount = $divisor->getAmount() * pow(10, self::STORAGE_PRECISION) + $divisor->getRemainder();
+    
+        $rawResult = $scaledAmount / $divisorAmount;
+        $scaledResult = $rawResult * pow(10, self::STORAGE_PRECISION);
+    
+        $integerPart = (int) $scaledResult;
+        $fractionalPart = (int) $scaledResult - $integerPart;
+    
+        $result = new self($integerPart, $this->currency);
+        $result->setRemainder($fractionalPart);
+
+        return $result;
+    }
+
+    public function discount(float $percentage): self
     {
         $factor = 1 - ($percentage / 100);
     
-        $factorInSmallestUnit = (int) round($factor * pow(10, self::STORAGE_PRECISION));
+        $factorInSmallestUnit = (int) ($factor * pow(10, self::STORAGE_PRECISION));
         $factorMoney = new Money($factorInSmallestUnit, $this->currency);
 
         return $this->multiply($factorMoney);
     }
 
-    public function convert(Currency $toCurrency): Money
+    public function convert(Currency $toCurrency): self
     {
         if ($this->currency === $toCurrency) {
             return $this;
@@ -42,9 +96,14 @@ class Money
 
         $amountInBase = $this->amount / $rates['rates'][$this->currency->value];
 
-        $convertedAmount = (int) round($amountInBase * $rates['rates'][$toCurrency->value]);
+        $convertedAmount = $amountInBase * $rates['rates'][$toCurrency->value];
+        $integerPart = (int) $convertedAmount;
+        $fractionalPart = (int) $convertedAmount - $integerPart;
+   
+        $result = new static($integerPart, $toCurrency);
+        $result->setRemainder($fractionalPart);
 
-        return new Money($convertedAmount, $toCurrency);
+        return $result;
     }
 
     /**
@@ -77,35 +136,31 @@ class Money
     public function add(Money $other): static
     {
         $this->assertSameCurrency($other);
-        return new static($this->amount + $other->getAmount(), $this->currency);
+        $other = (float)"{$other->getAmount()}.{$other->getRemainder()}";
+        $self = (float)"{$this->amount}.{$this->remainder}";
+
+        $sum = $other + $self;
+        $integerPart = (int) $sum;
+        $fractionalPart = (int) $sum - $integerPart;
+
+        $result = new static($integerPart, $this->currency);
+        $result->setRemainder($fractionalPart);
+        return $result;
     }
 
     public function subtract(Money $other): static
     {
         $this->assertSameCurrency($other);
-        return new static($this->amount - $other->getAmount(), $this->currency);
-    }
+        $other = (float)"{$other->getAmount()}.{$other->getRemainder()}";
+        $self = (float)"{$this->amount}.{$this->remainder}";
 
-    public function multiply(Money $factor): static
-    {
-        $this->assertSameCurrency($factor);
+        $sub = $other - $self;
+        $integerPart = (int) $sub;
+        $fractionalPart = (int) $sub - $integerPart;
 
-        $multipliedAmount = (int) round($this->amount * ($factor->getAmount() / pow(10, self::STORAGE_PRECISION)));
-        
-        return new static($multipliedAmount, $this->currency);
-    }
-    
-    public function divide(Money $divisor): static
-    {
-        $this->assertSameCurrency($divisor);
-    
-        if ($divisor->getAmount() === 0) {
-            throw new InvalidArgumentException('Division by zero is not allowed.');
-        }
-
-        $dividedAmount = (int) round($this->amount / ($divisor->getAmount() / pow(10, self::STORAGE_PRECISION)));
-        
-        return new static($dividedAmount, $this->currency);
+        $result = new static($integerPart, $this->currency);
+        $result->setRemainder($fractionalPart);
+        return $result;
     }
 
     protected function assertSameCurrency(Money $other): void

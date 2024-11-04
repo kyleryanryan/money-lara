@@ -10,7 +10,7 @@ class AddToCartWithQuantityRequest extends FormRequest
     {
         return [
             'product_id' => 'required|uuid|exists:products,id',
-            'quantity' => 'required|integer|min:1',
+            'quantity' => 'required|min:1',
         ];
     }
 
@@ -19,7 +19,8 @@ class AddToCartWithQuantityRequest extends FormRequest
         return $this->input('product_id');
     }
 
-    public function getQuantity(): int
+    //temporarily changed to float for experimental purposes
+    public function getQuantity(): float
     {
         return $this->input('quantity');
     }

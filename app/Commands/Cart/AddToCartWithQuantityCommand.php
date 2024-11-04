@@ -6,7 +6,7 @@ class AddToCartWithQuantityCommand
 {
     public function __construct(
         private string $productId,
-        private int $quantity
+        private float $quantity
     ) {}
 
     public function getProductId(): string
@@ -14,7 +14,8 @@ class AddToCartWithQuantityCommand
         return $this->productId;
     }
 
-    public function getQuantity(): int
+    //temporarily changed to float for experimental purposes
+    public function getQuantity(): float
     {
         return $this->quantity;
     }
