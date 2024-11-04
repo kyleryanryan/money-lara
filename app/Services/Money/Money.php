@@ -7,14 +7,16 @@ namespace App\Services\Money;
 use App\Enums\Currency;
 use Illuminate\Support\Facades\Config;
 use InvalidArgumentException;
+use App\Support\NumberHelper;
 
-class Money extends AbstractMoney
+class Money
 {
     public const STORAGE_PRECISION = 6;
 
-    public function __construct(int $amount, Currency $currency)
-    {
-        parent::__construct($amount, $currency);
+    public function __construct(
+        private int $amount,
+        private Currency $currency
+    ){
     }
 
     public function discount(float $percentage): Money
@@ -54,5 +56,62 @@ class Money extends AbstractMoney
     public static function fromStoredAmount(int $storedAmount, Currency $currency): static
     {
         return new static($storedAmount, $currency);
+    }
+
+    public function getAmount(): int
+    {
+        return $this->amount;
+    }
+
+    public function getCurrency(): Currency
+    {
+        return $this->currency;
+    }
+
+    public function displayAmount(): string
+    {
+        $floatAmount = NumberHelper::intToFloat($this->amount, self::STORAGE_PRECISION);
+        return number_format($floatAmount, $this->currency->decimals());
+    }
+
+    public function add(Money $other): static
+    {
+        $this->assertSameCurrency($other);
+        return new static($this->amount + $other->getAmount(), $this->currency);
+    }
+
+    public function subtract(Money $other): static
+    {
+        $this->assertSameCurrency($other);
+        return new static($this->amount - $other->getAmount(), $this->currency);
+    }
+
+    public function multiply(Money $factor): static
+    {
+        $this->assertSameCurrency($factor);
+
+        $multipliedAmount = (int) round($this->amount * ($factor->getAmount() / pow(10, self::STORAGE_PRECISION)));
+        
+        return new static($multipliedAmount, $this->currency);
+    }
+    
+    public function divide(Money $divisor): static
+    {
+        $this->assertSameCurrency($divisor);
+    
+        if ($divisor->getAmount() === 0) {
+            throw new InvalidArgumentException('Division by zero is not allowed.');
+        }
+
+        $dividedAmount = (int) round($this->amount / ($divisor->getAmount() / pow(10, self::STORAGE_PRECISION)));
+        
+        return new static($dividedAmount, $this->currency);
+    }
+
+    protected function assertSameCurrency(Money $other): void
+    {
+        if ($this->currency !== $other->getCurrency()) {
+            throw new InvalidArgumentException('Currencies must match for arithmetic operations.');
+        }
     }
 }
