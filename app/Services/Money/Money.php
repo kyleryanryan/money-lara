@@ -12,8 +12,8 @@ use App\Support\NumberHelper;
 class Money
 {
     public const STORAGE_PRECISION = 6;
-    private const REMAINDER_PRECISION = 4;
-    private int $remainder = 0;
+    public const REMAINDER_PRECISION = 4;
+    private string $remainder = '0';
 
     public function __construct(
         private int $amount,
@@ -21,12 +21,12 @@ class Money
     ){
     }
 
-    public function getRemainder(): int
+    public function getRemainder(): string
     {
         return $this->remainder;
     }
 
-    public function setRemainder(int $remainder): void
+    public function setRemainder(string $remainder): void
     {
         $this->remainder = $remainder;
     }
@@ -43,7 +43,7 @@ class Money
 
     public function displayAmount(): string
     {
-        $floatAmount = NumberHelper::intToFloat($this->getAmount(), self::STORAGE_PRECISION);
+        $floatAmount = NumberHelper::intToFloat($this->getAmount(), self::STORAGE_PRECISION, $this->currency->decimals());
         return number_format($floatAmount, $this->currency->decimals());
     }
 
@@ -58,7 +58,7 @@ class Money
         [$integerPart, $fractionalPart] = explode('.', $sum);
 
         $integerPart = (int) $integerPart;
-        $fractionalPart = (int) rtrim($fractionalPart, '0');
+        $fractionalPart = rtrim($fractionalPart, '0');
 
         $result = new static($integerPart, $this->currency);
         $result->setRemainder($fractionalPart);
@@ -71,12 +71,12 @@ class Money
         $other = (string)"{$other->getAmount()}.{$other->getRemainder()}";
         $self = (string)"{$this->getAmount()}.{$this->getRemainder()}";
 
-        $sub = bcsub($self, $other, self::REMAINDER_PRECISION);
+        $sub = bcsub($self, $other, self::REMAINDER_PRECISION + self::STORAGE_PRECISION);
 
         [$integerPart, $fractionalPart] = explode('.', $sub);
 
         $integerPart = (int) $integerPart;
-        $fractionalPart = (int) rtrim($fractionalPart, '0');
+        $fractionalPart = rtrim($fractionalPart, '0');
 
         $result = new static($integerPart, $this->currency);
         $result->setRemainder($fractionalPart);
@@ -99,7 +99,7 @@ class Money
         [$integerPart, $fractionalPart] = explode('.', $scaledResult . '.0');
 
         $result = new self((int)$integerPart, $this->currency);
-        $result->setRemainder((int) rtrim($fractionalPart, '0'));
+        $result->setRemainder(rtrim($fractionalPart, '0'));
 
         return $result;
     }
@@ -124,7 +124,7 @@ class Money
         [$integerPart, $fractionalPart] = explode('.', $scaledResult . '.0');
 
         $result = new self((int)$integerPart, $this->currency);
-        $result->setRemainder((int) rtrim($fractionalPart, '0'));
+        $result->setRemainder(rtrim($fractionalPart, '0'));
     
         return $result;
     }
@@ -156,7 +156,7 @@ class Money
         [$integerPart, $fractionalPart] = explode('.', $convertedAmount . '.0');
 
         $result = new static((int)$integerPart, $toCurrency);
-        $result->setRemainder((int) rtrim($fractionalPart, '0'));
+        $result->setRemainder(rtrim($fractionalPart, '0'));
 
         return $result;
     }

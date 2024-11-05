@@ -25,6 +25,9 @@ class CalculateInstallmentsCommandHandler
         $totalMoney = new Money(0, $currency);
 
         foreach ($products as $product) {
+            if($product->currency !== $firstProduct->currency){
+                throw new InvalidArgumentException('All products must have the same currency.');
+            }
             $totalMoney = $totalMoney->add($product->getMoney());
         }
         $termInSmallestUnit = NumberHelper::floatToInt($command->getInstallments(), Money::STORAGE_PRECISION);
@@ -36,13 +39,14 @@ class CalculateInstallmentsCommandHandler
 
         $installments = [];
         for ($i = 0; $i < $command->getInstallments(); $i++) {
-            $installment = $i === $command->getInstallments() - 1
-                ? $baseInstallmentMoney->add($remainder)
-                : $baseInstallmentMoney;
-
-            $installments[] = $installment->displayAmount() . ' ' . $currency->symbol();
+            if(($command->getInstallments() - 1) === $i){
+                $installment = $baseInstallmentMoney->add($remainder);
+                $installments[] = $installment->displayAmount() . ' ' . $currency->symbol();
+            }
+            else{
+                $installments[] = $baseInstallmentMoney->displayAmount() . ' ' . $currency->symbol();
+            }
         }
-
  
         return new CalculateInstallmentsResponse([
             'total' => $totalMoney,

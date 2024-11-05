@@ -111,13 +111,17 @@ class CartController extends Controller
      * @param Request $request
      * @return JsonResponse
      */
-    public function calculateInstallments(CalculateInstallmentsRequest $request): CalculateInstallmentsResponse
+    public function calculateInstallments(CalculateInstallmentsRequest $request): CalculateInstallmentsResponse|JsonResponse
     {
         $command = new CalculateInstallmentsCommand(
             productIds: $request->getProductIds(),
             installments: $request->getInstallments()
         );
 
-        return $this->commandBus->handle($command);
+        try {
+            return $this->commandBus->handle($command);
+        } catch (InvalidArgumentException $e) {
+            return response()->json(['error' => $e->getMessage()], 400);
+        }
     }
 }
