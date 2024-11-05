@@ -10,10 +10,10 @@ class AddToCartWithQuantityResponse extends JsonResource
     {
         return [
             'product' => $this->getProduct(),
-            'unit_price' => $this->getUnitPrice(),
+            'unitPrice' => $this->getUnitPrice(),
             'quantity' => $this->getQuantity(),
-            'total_price' => $this->getTotalPrice(),
-            'total_price_internal' => $this->getTotalPriceInternal(),
+            'totalPrice' => $this->getTotalPrice(),
+            'totalPricePnternal' => $this->getTotalPriceInternal(),
             'currency' => $this->getCurrency(),
         ];
     }
@@ -28,7 +28,7 @@ class AddToCartWithQuantityResponse extends JsonResource
 
     public function getUnitPrice(): string
     {
-        return $this->resource['unit_price']->displayAmount();
+        return $this->resource['unitPrice']->displayAmount();
     }
 
     public function getQuantity(): int
@@ -38,16 +38,16 @@ class AddToCartWithQuantityResponse extends JsonResource
 
     public function getTotalPrice(): string
     {
-        return $this->resource['total_price']->displayAmount();
+        return $this->resource['totalPrice']->displayAmount();
     }
 
     public function getCurrency(): string
     {
-        return $this->resource['unit_price']->getCurrency()->symbol();
+        return $this->resource['unitPrice']->getCurrency()->symbol();
     }
 
     public function getTotalPriceInternal(): int
     {
-        return $this->resource['total_price']->getAmount();
+        return $this->resource['totalPrice']->getAmount();
     }
 }

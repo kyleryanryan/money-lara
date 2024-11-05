@@ -37,8 +37,8 @@ class ConvertProductCurrencyCommandHandler
         $product->save();
 
         $resourceData = [
-            'original_price' => $money,
-            'converted_price' => $convertedMoney,
+            'originalPrice' => $money,
+            'convertedPrice' => $convertedMoney,
         ];
 
         return new ConvertProductCurrencyResponse($resourceData);

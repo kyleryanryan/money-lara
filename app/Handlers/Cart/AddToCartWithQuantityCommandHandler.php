@@ -28,9 +28,9 @@ class AddToCartWithQuantityCommandHandler
 
         return new AddToCartWithQuantityResponse([
             'product' => $product,
-            'unit_price' => $productMoney,
+            'unitPrice' => $productMoney,
             'quantity' => $command->getQuantity(),
-            'total_price' => $totalMoney,
+            'totalPrice' => $totalMoney,
         ]);
     }
 }
