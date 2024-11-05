@@ -12,7 +12,7 @@ use App\Support\NumberHelper;
 class Money
 {
     public const STORAGE_PRECISION = 6;
-    public const REMAINDER_PRECISION = 4;
+    public const REMAINDER_PRECISION = 2;
     private string $remainder = '0';
 
     public function __construct(
@@ -61,8 +61,9 @@ class Money
     public function add(Money $other): static
     {
         $this->assertSameCurrency($other);
-        $other = (string)"{$other->getAmount()}.{$other->getRemainder()}";
-        $self = (string)"{$this->getAmount()}.{$this->getRemainder()}";
+
+        $other = $this->formatAmountWithRemainder($other->getAmount(), $other->getRemainder());
+        $self = $this->formatAmountWithRemainder($this->getAmount(), $this->getRemainder());
 
         $sum = bcadd($other, $self, self::REMAINDER_PRECISION);
 
@@ -79,8 +80,9 @@ class Money
     public function subtract(Money $other): static
     {
         $this->assertSameCurrency($other);
-        $other = (string)"{$other->getAmount()}.{$other->getRemainder()}";
-        $self = (string)"{$this->getAmount()}.{$this->getRemainder()}";
+
+        $other = $this->formatAmountWithRemainder($other->getAmount(), $other->getRemainder());
+        $self = $this->formatAmountWithRemainder($this->getAmount(), $this->getRemainder());
 
         $sub = bcsub($self, $other, self::REMAINDER_PRECISION + self::STORAGE_PRECISION);
 
@@ -98,8 +100,8 @@ class Money
     {
         $this->assertSameCurrency($factor);
 
-        $multiplier = "{$factor->getAmount()}.{$factor->getRemainder()}";
-        $multiplicand = "{$this->getAmount()}.{$this->remainder}";
+        $multiplier = $this->formatAmountWithRemainder($factor->getAmount(), $factor->getRemainder());
+        $multiplicand = $this->formatAmountWithRemainder($this->getAmount(), $this->getRemainder());
 
         $multiplierFormat = bcdiv($multiplier, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
         $multiplicandFormat = bcdiv($multiplicand, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
@@ -123,8 +125,8 @@ class Money
             throw new InvalidArgumentException('Division by zero is not allowed.');
         }
 
-        $dividend = "{$this->getAmount()}.{$this->remainder}";
-        $divisorValue = "{$divisor->getAmount()}.{$divisor->getRemainder()}";
+        $dividend = $this->formatAmountWithRemainder($this->getAmount(), $this->getRemainder());
+        $divisorValue = $this->formatAmountWithRemainder($divisor->getAmount(), $divisor->getRemainder());
 
         $dividendFormat = bcdiv($dividend, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
         $divisorFormat = bcdiv($divisorValue, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
@@ -187,5 +189,13 @@ class Money
         if ($this->currency !== $other->getCurrency()) {
             throw new InvalidArgumentException('Currencies must match for arithmetic operations.');
         }
+    }
+
+    /**
+     * Concatenates the amount and remainder as a formatted string.
+     */
+    private function formatAmountWithRemainder(int $amount, string $remainder): string
+    {
+        return "{$amount}.{$remainder}";
     }
 }
