@@ -40,7 +40,7 @@ class CalculateInstallmentsCommandHandler
         $installments = [];
         for ($i = 0; $i < $command->getInstallments(); $i++) {
             if(($command->getInstallments() - 1) === $i){
-                $installment = $baseInstallmentMoney->add($remainder);
+                $installment = $baseInstallmentMoney->add($this->getRemainderBalance($remainder, $currency));
                 $installments[] = $installment->displayAmount() . ' ' . $currency->symbol();
             }
             else{
@@ -53,5 +53,13 @@ class CalculateInstallmentsCommandHandler
             'installments' => $command->getInstallments(),
             'installmentBreakdown' => $installments,
         ]);
+    }
+
+    private function getRemainderBalance(Money $remainder, Currency $currency): Money
+    {
+        $remainder = "0.{$remainder->getRemainder()}";
+        $balance = bcmul($remainder, pow(10, Money::REMAINDER_PRECISION + Money::STORAGE_PRECISION - $currency->decimals()), $currency->decimals());
+        
+        return new Money($balance, $currency);
     }
 }
