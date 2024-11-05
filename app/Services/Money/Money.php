@@ -72,7 +72,7 @@ class Money
         $integerPart = (int) $integerPart;
         $fractionalPart = rtrim($fractionalPart, '0');
 
-        $result = new static($integerPart, $this->currency);
+        $result = self::fromInt($integerPart, $this->currency);
         $result->setRemainder($fractionalPart);
         return $result;
     }
@@ -91,7 +91,7 @@ class Money
         $integerPart = (int) $integerPart;
         $fractionalPart = rtrim($fractionalPart, '0');
 
-        $result = new static($integerPart, $this->currency);
+        $result = self::fromInt($integerPart, $this->currency);
         $result->setRemainder($fractionalPart);
         return $result;
     }
@@ -103,15 +103,12 @@ class Money
         $multiplier = $this->formatAmountWithRemainder($factor->getAmount(), $factor->getRemainder());
         $multiplicand = $this->formatAmountWithRemainder($this->getAmount(), $this->getRemainder());
 
-        $multiplierFormat = bcdiv($multiplier, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
-        $multiplicandFormat = bcdiv($multiplicand, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
+        $rawResult = bcmul($multiplier, $multiplicand, self::REMAINDER_PRECISION);
+        $amountResult = bcdiv($rawResult, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION);
 
-        $rawResult = bcmul($multiplierFormat, $multiplicandFormat, self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
-        $scaledResult = bcmul($rawResult, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
+        [$integerPart, $fractionalPart] = explode('.', $amountResult . '.0');
 
-        [$integerPart, $fractionalPart] = explode('.', $scaledResult . '.0');
-
-        $result = new static((int)$integerPart, $this->currency);
+        $result = self::fromInt((int)$integerPart, $this->currency);
         $result->setRemainder(rtrim($fractionalPart, '0'));
 
         return $result;
@@ -120,25 +117,22 @@ class Money
     public function divide(Money $divisor): static
     {
         $this->assertSameCurrency($divisor);
-    
+        
         if ($divisor->getAmount() === 0) {
             throw new InvalidArgumentException('Division by zero is not allowed.');
         }
 
         $dividend = $this->formatAmountWithRemainder($this->getAmount(), $this->getRemainder());
         $divisorValue = $this->formatAmountWithRemainder($divisor->getAmount(), $divisor->getRemainder());
-
-        $dividendFormat = bcdiv($dividend, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
-        $divisorFormat = bcdiv($divisorValue, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
-
-        $rawResult = bcdiv($dividendFormat, $divisorFormat, self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
+    
+        $rawResult = bcdiv($dividend, $divisorValue, self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
         $scaledResult = bcmul($rawResult, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
 
         [$integerPart, $fractionalPart] = explode('.', $scaledResult . '.0');
 
-        $result = new static((int)$integerPart, $this->currency);
+        $result = self::fromInt((int)$integerPart, $this->currency);
         $result->setRemainder(rtrim($fractionalPart, '0'));
-    
+
         return $result;
     }
 
@@ -167,7 +161,7 @@ class Money
 
         [$integerPart, $fractionalPart] = explode('.', $convertedAmount . '.0');
 
-        $result = new static((int)$integerPart, $toCurrency);
+        $result = self::fromInt((int)$integerPart, $toCurrency);
         $result->setRemainder(rtrim($fractionalPart, '0'));
 
         return $result;
@@ -181,7 +175,7 @@ class Money
      */
     public static function fromStoredAmount(int $storedAmount, Currency $currency): static
     {
-        return new static($storedAmount, $currency);
+        return self::fromInt($storedAmount, $currency);
     }
 
     protected function assertSameCurrency(Money $other): void
