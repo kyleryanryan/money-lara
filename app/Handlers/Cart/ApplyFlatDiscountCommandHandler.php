@@ -25,7 +25,7 @@ class ApplyFlatDiscountCommandHandler
 
         $firstProduct = $products->first();
         $currency = Currency::from($firstProduct->currency);
-        $totalMoney = new Money(0, $currency);
+        $totalMoney = Money::fromInt(0, $currency);
 
         $productList = [];
 
@@ -44,7 +44,7 @@ class ApplyFlatDiscountCommandHandler
             $totalMoney = $totalMoney->add($productMoney);
         }
 
-        $discountMoney = new Money(NumberHelper::floatToInt($discount, Money::STORAGE_PRECISION), $currency);
+        $discountMoney = Money::fromFloat($discount, $currency);
         $discountedTotal = $totalMoney->subtract($discountMoney);
 
         $responseData = [

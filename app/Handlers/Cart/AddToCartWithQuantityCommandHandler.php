@@ -17,10 +17,9 @@ class AddToCartWithQuantityCommandHandler
 
         /** @var Money $productMoney */
         $productMoney = $product->getMoney();
-        $quantityInSmallestUnit = NumberHelper::floatToInt($command->getQuantity(), Money::STORAGE_PRECISION);
 
         try {
-            $totalMoney = $productMoney->multiply(new Money($quantityInSmallestUnit, $productMoney->getCurrency()));
+            $totalMoney = $productMoney->multiply(Money::fromFloat($command->getQuantity(), $productMoney->getCurrency()));
 
         } catch (InvalidArgumentException $e) {
             throw new InvalidArgumentException('Error calculating total.');

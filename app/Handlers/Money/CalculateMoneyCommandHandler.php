@@ -14,17 +14,17 @@ class CalculateMoneyCommandHandler
         $moneyValues = collect($command->getMoneyValues());
 
         $currency = $moneyValues->first()->getCurrency();
-        $total = $moneyValues->reduce(fn($carry, $money) => $carry->add($money), new Money(0, $currency));
+        $total = $moneyValues->reduce(fn($carry, $money) => $carry->add($money), Money::fromInt(0, $currency));
         $lowest = $moneyValues->min(fn($money) => $money->getAmount());
         $highest = $moneyValues->max(fn($money) => $money->getAmount());
 
-        $divisorInSmallestUnit = NumberHelper::floatToInt(count($moneyValues), Money::STORAGE_PRECISION);
-        $average = $total->divide(new Money($divisorInSmallestUnit, $currency));
+        $average = $total->divide(Money::fromFloat(count($moneyValues), $currency));
 
+        
         return new MoneyStatisticsResponse([
             'total' => $total,
-            'lowest' => new Money($lowest, $currency),
-            'highest' => new Money($highest, $currency),
+            'lowest' => Money::fromInt($lowest, $currency),
+            'highest' => Money::fromInt($highest, $currency),
             'average' => $average,
         ]);
     }

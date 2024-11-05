@@ -21,6 +21,17 @@ class Money
     ){
     }
 
+    public static function fromFloat(float $value, Currency $currency): static
+    {
+        $amount = NumberHelper::floatToInt($value, self::STORAGE_PRECISION);
+        return new static(amount: $amount, currency: $currency);
+    }
+
+    public static function fromInt(int $value, Currency $currency): static
+    {
+        return new static(amount: $value, currency: $currency);
+    }
+
     public function getRemainder(): string
     {
         return $this->remainder;
@@ -83,7 +94,7 @@ class Money
         return $result;
     }
 
-    public function multiply(Money $factor): self
+    public function multiply(Money $factor): static
     {
         $this->assertSameCurrency($factor);
 
@@ -98,13 +109,13 @@ class Money
 
         [$integerPart, $fractionalPart] = explode('.', $scaledResult . '.0');
 
-        $result = new self((int)$integerPart, $this->currency);
+        $result = new static((int)$integerPart, $this->currency);
         $result->setRemainder(rtrim($fractionalPart, '0'));
 
         return $result;
     }
 
-    public function divide(Money $divisor): self
+    public function divide(Money $divisor): static
     {
         $this->assertSameCurrency($divisor);
     
@@ -123,23 +134,22 @@ class Money
 
         [$integerPart, $fractionalPart] = explode('.', $scaledResult . '.0');
 
-        $result = new self((int)$integerPart, $this->currency);
+        $result = new static((int)$integerPart, $this->currency);
         $result->setRemainder(rtrim($fractionalPart, '0'));
     
         return $result;
     }
 
-    public function discount(float $percentage): self
+    public function discount(float $percentage): static
     {
         $factor = 1 - ($percentage / 100);
-    
-        $factorInSmallestUnit = (int) ($factor * pow(10, self::STORAGE_PRECISION));
-        $factorMoney = new Money($factorInSmallestUnit, $this->currency);
+
+        $factorMoney = Money::fromFloat($factor, $this->currency);
 
         return $this->multiply($factorMoney);
     }
 
-    public function convert(Currency $toCurrency): self
+    public function convert(Currency $toCurrency): static
     {
         if ($this->currency === $toCurrency) {
             return $this;

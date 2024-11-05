@@ -28,13 +28,10 @@ class ProductController extends Controller
      */
     public function store(CreateProductRequest $request): CreateProductResponse
     {
-        $priceInSmallestUnit = NumberHelper::floatToInt($request->input('price'), Money::STORAGE_PRECISION);
-        $currency = Currency::from($request->input('currency'));
-
         $command = new CreateProductCommand(
-            name: $request->input('name'),
-            priceInSmallestUnit: $priceInSmallestUnit,
-            currency: $currency
+            name: $request->getName(),
+            price: $request->getPrice(),
+            currency: $request->getCurrency()
         );
 
         return $this->commandBus->handle($command);

@@ -12,7 +12,7 @@ class CreateProductCommandHandler
 
     public function __invoke(CreateProductCommand $command): CreateProductResponse
     {
-        $money = new Money($command->getPriceInSmallestUnit(), $command->getCurrency());
+        $money = Money::fromFloat($command->getPrice(), $command->getCurrency());
 
         $product = Product::create([
             'name' => $command->getName(),

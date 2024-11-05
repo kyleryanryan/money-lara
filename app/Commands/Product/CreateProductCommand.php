@@ -8,7 +8,7 @@ class CreateProductCommand
 {
     public function __construct(
         private string $name,
-        private int $priceInSmallestUnit,
+        private float $price,
         private Currency $currency
     ){
     }
@@ -18,9 +18,9 @@ class CreateProductCommand
         return $this->name;
     }
 
-    public function getPriceInSmallestUnit(): int
+    public function getPrice(): float
     {
-        return $this->priceInSmallestUnit;
+        return $this->price;
     }
 
     public function getCurrency(): Currency

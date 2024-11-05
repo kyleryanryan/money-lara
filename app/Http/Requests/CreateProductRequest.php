@@ -28,4 +28,19 @@ class CreateProductRequest extends FormRequest
             'currency' => ['required', new Enum(Currency::class)],
         ];
     }
+
+    public function getName(): string
+    {
+        return $this->input('name');
+    }
+
+    public function getPrice(): float
+    {
+        return $this->input('price');
+    }
+
+    public function getCurrency(): Currency
+    {
+        return Currency::from($this->input('currency'));
+    }
 }

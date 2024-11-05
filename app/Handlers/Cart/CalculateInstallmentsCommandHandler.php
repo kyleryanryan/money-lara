@@ -22,7 +22,7 @@ class CalculateInstallmentsCommandHandler
 
         $firstProduct = $products->first();
         $currency = Currency::from($firstProduct->currency);
-        $totalMoney = new Money(0, $currency);
+        $totalMoney = Money::fromInt(0, $currency);
 
         foreach ($products as $product) {
             if($product->currency !== $firstProduct->currency){
@@ -30,9 +30,8 @@ class CalculateInstallmentsCommandHandler
             }
             $totalMoney = $totalMoney->add($product->getMoney());
         }
-        $termInSmallestUnit = NumberHelper::floatToInt($command->getInstallments(), Money::STORAGE_PRECISION);
-
-        $termMoney = new Money($termInSmallestUnit, $currency);
+      
+        $termMoney = Money::fromFloat($command->getInstallments(), $currency);
         $baseInstallmentMoney = $totalMoney->divide($termMoney);
         $totalBaseInstallment = $baseInstallmentMoney->multiply($termMoney);
         $remainder = $totalMoney->subtract($totalBaseInstallment);
@@ -59,7 +58,7 @@ class CalculateInstallmentsCommandHandler
     {
         $remainder = "0.{$remainder->getRemainder()}";
         $balance = bcmul($remainder, pow(10, Money::REMAINDER_PRECISION + Money::STORAGE_PRECISION - $currency->decimals()), $currency->decimals());
-        
-        return new Money($balance, $currency);
+
+        return Money::fromInt($balance, $currency);
     }
 }

@@ -22,7 +22,7 @@ class AddToCartCommandHandler
 
         $firstProduct = $products->first();
         $currency = Currency::from($firstProduct->currency);
-        $totalMoney = new Money(0, $currency);
+        $totalMoney = Money::fromInt(0, $currency);
 
         $productList = [];
 
