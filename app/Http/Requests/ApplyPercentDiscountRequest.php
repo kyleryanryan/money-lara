@@ -11,7 +11,7 @@ class ApplyPercentDiscountRequest extends FormRequest
         return [
             'product_ids' => 'required|array|min:1',
             'product_ids.*' => 'required|uuid|exists:products,id',
-            'discount_percentage' => 'required|numeric|min:0|max:100',
+            'discount_percentage' => 'required|numeric|min:1|max:100',
         ];
     }
 

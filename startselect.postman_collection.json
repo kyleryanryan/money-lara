@@ -1,0 +1,257 @@
+{
+	"info": {
+		"_postman_id": "a94312e8-aded-4647-b5b8-2dfa14ab2276",
+		"name": "startselect",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "13283497"
+	},
+	"item": [
+		{
+			"name": "create product(store)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"name\": \"ISK_0\",\n    \"price\": 100,\n    \"currency\": 66\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/products",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"products"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "convert currency",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"currency\": 45\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/products/c811c125-3d84-4a0e-89b3-e31add211c07/convert",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"products",
+						"c811c125-3d84-4a0e-89b3-e31add211c07",
+						"convert"
+					],
+					"query": [
+						{
+							"key": "currency",
+							"value": "",
+							"disabled": true
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "add cart product(add)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"product_ids\": [\n        \"bb27fda1-7ebb-4478-b833-b579b2d02ac0\",\n        \"7cfd4860-023b-45b2-a0af-0ccd0557f6d3\"\n    ]\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/cart/add",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"cart",
+						"add"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "flat discount(sub)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"product_ids\": [\n        \"3360718d-3a29-4574-8f1a-85381718e863\"\n    ],\n    \"discount\": 10.0\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/cart/apply-flat-discount",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"cart",
+						"apply-flat-discount"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "percent discount",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"product_ids\": [\n        \"3360718d-3a29-4574-8f1a-85381718e863\"\n    ],\n    \"discount_percentage\": 20.1\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/cart/apply-percent-discount",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"cart",
+						"apply-percent-discount"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "cart product quantity(multiply)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"product_id\": \"bb27fda1-7ebb-4478-b833-b579b2d02ac0\",\n    \"quantity\": 3.34 //temporarily at float for experiments\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/cart/add-with-quantity",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"cart",
+						"add-with-quantity"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "installment(divide)",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"product_ids\": [\"bb27fda1-7ebb-4478-b833-b579b2d02ac0\"],\n    \"installments\": 3\n}\n",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/cart/installments",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"cart",
+						"installments"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "bonus",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"product_ids\": [\n        \"45e14612-4e3b-4c7c-a7b4-4a9491035af7\", // 90.12\n        \"3c671492-d580-4086-b2fa-42c92b5bff40\", // 90.12\n        \"c811c125-3d84-4a0e-89b3-e31add211c07\" // 11.746188\n    ]\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "http://localhost:8080/api/money/statistics",
+					"protocol": "http",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"api",
+						"money",
+						"statistics"
+					]
+				}
+			},
+			"response": []
+		}
+	]
+}
