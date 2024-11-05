@@ -12,7 +12,7 @@ use App\Support\NumberHelper;
 class Money
 {
     public const STORAGE_PRECISION = 6;
-    private const REMAINDER_PRECISION = 6;
+    private const REMAINDER_PRECISION = 4;
     private int $remainder = 0;
 
     public function __construct(
@@ -31,21 +31,75 @@ class Money
         $this->remainder = $remainder;
     }
 
+    public function getCurrency(): Currency
+    {
+        return $this->currency;
+    }
+
+    public function getAmount(): int
+    {
+        return $this->amount;
+    }
+
+    public function displayAmount(): string
+    {
+        $floatAmount = NumberHelper::intToFloat($this->getAmount(), self::STORAGE_PRECISION);
+        return number_format($floatAmount, $this->currency->decimals());
+    }
+
+    public function add(Money $other): static
+    {
+        $this->assertSameCurrency($other);
+        $other = (string)"{$other->getAmount()}.{$other->getRemainder()}";
+        $self = (string)"{$this->getAmount()}.{$this->getRemainder()}";
+
+        $sum = bcadd($other, $self, self::REMAINDER_PRECISION);
+
+        [$integerPart, $fractionalPart] = explode('.', $sum);
+
+        $integerPart = (int) $integerPart;
+        $fractionalPart = (int) rtrim($fractionalPart, '0');
+
+        $result = new static($integerPart, $this->currency);
+        $result->setRemainder($fractionalPart);
+        return $result;
+    }
+
+    public function subtract(Money $other): static
+    {
+        $this->assertSameCurrency($other);
+        $other = (string)"{$other->getAmount()}.{$other->getRemainder()}";
+        $self = (string)"{$this->getAmount()}.{$this->getRemainder()}";
+
+        $sub = bcsub($self, $other, self::REMAINDER_PRECISION);
+
+        [$integerPart, $fractionalPart] = explode('.', $sub);
+
+        $integerPart = (int) $integerPart;
+        $fractionalPart = (int) rtrim($fractionalPart, '0');
+
+        $result = new static($integerPart, $this->currency);
+        $result->setRemainder($fractionalPart);
+        return $result;
+    }
+
     public function multiply(Money $factor): self
     {
         $this->assertSameCurrency($factor);
 
-        // Convert both amounts to the decimal units and add remainders
-        $multiplier = ((float)"{$factor->getAmount()}.{$factor->getRemainder()}") / pow(10, self::STORAGE_PRECISION);;
-        $multiplicand = ((float)"{$this->amount}.{$this->remainder}") / pow(10, self::STORAGE_PRECISION);
-        $rawResult = $multiplier * $multiplicand;
+        $multiplier = "{$factor->getAmount()}.{$factor->getRemainder()}";
+        $multiplicand = "{$this->getAmount()}.{$this->remainder}";
 
-        $result = $rawResult * pow(10, self::STORAGE_PRECISION);
-        $integerPart = (int) $result;
-        $fractionalPart = (int) $result - $integerPart;
-        $result = new self($integerPart, $this->currency);
+        $multiplierFormat = bcdiv($multiplier, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
+        $multiplicandFormat = bcdiv($multiplicand, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
 
-        $result->setRemainder((int) $fractionalPart);
+        $rawResult = bcmul($multiplierFormat, $multiplicandFormat, self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
+        $scaledResult = bcmul($rawResult, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
+
+        [$integerPart, $fractionalPart] = explode('.', $scaledResult . '.0');
+
+        $result = new self((int)$integerPart, $this->currency);
+        $result->setRemainder((int) rtrim($fractionalPart, '0'));
 
         return $result;
     }
@@ -58,18 +112,20 @@ class Money
             throw new InvalidArgumentException('Division by zero is not allowed.');
         }
 
-        $scaledAmount = $this->amount * pow(10, self::STORAGE_PRECISION) + $this->remainder;
-        $divisorAmount = $divisor->getAmount() * pow(10, self::STORAGE_PRECISION) + $divisor->getRemainder();
-    
-        $rawResult = $scaledAmount / $divisorAmount;
-        $scaledResult = $rawResult * pow(10, self::STORAGE_PRECISION);
-    
-        $integerPart = (int) $scaledResult;
-        $fractionalPart = (int) $scaledResult - $integerPart;
-    
-        $result = new self($integerPart, $this->currency);
-        $result->setRemainder($fractionalPart);
+        $dividend = "{$this->getAmount()}.{$this->remainder}";
+        $divisorValue = "{$divisor->getAmount()}.{$divisor->getRemainder()}";
 
+        $dividendFormat = bcdiv($dividend, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
+        $divisorFormat = bcdiv($divisorValue, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
+
+        $rawResult = bcdiv($dividendFormat, $divisorFormat, self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
+        $scaledResult = bcmul($rawResult, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
+
+        [$integerPart, $fractionalPart] = explode('.', $scaledResult . '.0');
+
+        $result = new self((int)$integerPart, $this->currency);
+        $result->setRemainder((int) rtrim($fractionalPart, '0'));
+    
         return $result;
     }
 
@@ -94,14 +150,13 @@ class Money
             throw new InvalidArgumentException('Conversion rate not available for one or both currencies.');
         }
 
-        $amountInBase = $this->amount / $rates['rates'][$this->currency->value];
+        $amountInBase = bcdiv((string)$this->getAmount(), (string)$rates['rates'][$this->currency->value], self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
+        $convertedAmount = bcmul($amountInBase, (string)$rates['rates'][$toCurrency->value], self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
 
-        $convertedAmount = $amountInBase * $rates['rates'][$toCurrency->value];
-        $integerPart = (int) $convertedAmount;
-        $fractionalPart = (int) $convertedAmount - $integerPart;
-   
-        $result = new static($integerPart, $toCurrency);
-        $result->setRemainder($fractionalPart);
+        [$integerPart, $fractionalPart] = explode('.', $convertedAmount . '.0');
+
+        $result = new static((int)$integerPart, $toCurrency);
+        $result->setRemainder((int) rtrim($fractionalPart, '0'));
 
         return $result;
     }
@@ -115,52 +170,6 @@ class Money
     public static function fromStoredAmount(int $storedAmount, Currency $currency): static
     {
         return new static($storedAmount, $currency);
-    }
-
-    public function getAmount(): int
-    {
-        return $this->amount;
-    }
-
-    public function getCurrency(): Currency
-    {
-        return $this->currency;
-    }
-
-    public function displayAmount(): string
-    {
-        $floatAmount = NumberHelper::intToFloat($this->amount, self::STORAGE_PRECISION);
-        return number_format($floatAmount, $this->currency->decimals());
-    }
-
-    public function add(Money $other): static
-    {
-        $this->assertSameCurrency($other);
-        $other = (float)"{$other->getAmount()}.{$other->getRemainder()}";
-        $self = (float)"{$this->amount}.{$this->remainder}";
-
-        $sum = $other + $self;
-        $integerPart = (int) $sum;
-        $fractionalPart = (int) $sum - $integerPart;
-
-        $result = new static($integerPart, $this->currency);
-        $result->setRemainder($fractionalPart);
-        return $result;
-    }
-
-    public function subtract(Money $other): static
-    {
-        $this->assertSameCurrency($other);
-        $other = (float)"{$other->getAmount()}.{$other->getRemainder()}";
-        $self = (float)"{$this->amount}.{$this->remainder}";
-
-        $sub = $other - $self;
-        $integerPart = (int) $sub;
-        $fractionalPart = (int) $sub - $integerPart;
-
-        $result = new static($integerPart, $this->currency);
-        $result->setRemainder($fractionalPart);
-        return $result;
     }
 
     protected function assertSameCurrency(Money $other): void

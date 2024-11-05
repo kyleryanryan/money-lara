@@ -17,13 +17,8 @@ final class NumberHelper
         return round($floatNumber, $displayPrecision);
     }
 
-    public static function round(int|float $number, int $precision = 2): float
+    private static function round(int|float $number, int $precision = 2): float
     {
         return round($number, $precision);
-    }
-
-    public static function format(int|float $number, int $precision = 2): string
-    {
-        return number_format((float) $number, $precision);
     }
 }
