@@ -273,4 +273,84 @@ class Money
     {
         return "{$amount}.{$remainder}";
     }
+
+    /**
+     * Calculate the total of an array of Money objects.
+     *
+     * @param Money[] $moneyArray
+     * @return Money
+     */
+    public static function total(array $moneyArray): Money
+    {
+        self::assertSameCurrencyArray($moneyArray);
+
+        $currency = $moneyArray[0]->getCurrency();
+        return array_reduce($moneyArray, fn($carry, $money) => $carry->add($money), self::fromInt(0, $currency));
+    }
+
+    /**
+     * Get the lowest value in an array of Money objects.
+     *
+     * @param Money[] $moneyArray
+     * @return Money
+     */
+    public static function lowest(array $moneyArray): Money
+    {
+        self::assertSameCurrencyArray($moneyArray);
+
+        $currency = $moneyArray[0]->getCurrency();
+        $minAmount = min(array_map(fn($money) => $money->getAmount(), $moneyArray));
+
+        return self::fromInt($minAmount, $currency);
+    }
+
+    /**
+     * Get the highest value in an array of Money objects.
+     *
+     * @param Money[] $moneyArray
+     * @return Money
+     */
+    public static function highest(array $moneyArray): Money
+    {
+        self::assertSameCurrencyArray($moneyArray);
+
+        $currency = $moneyArray[0]->getCurrency();
+        $maxAmount = max(array_map(fn($money) => $money->getAmount(), $moneyArray));
+
+        return self::fromInt($maxAmount, $currency);
+    }
+
+    /**
+     * Calculate the average of an array of Money objects.
+     *
+     * @param Money[] $moneyArray
+     * @return Money
+     */
+    public static function average(array $moneyArray): Money
+    {
+        self::assertSameCurrencyArray($moneyArray);
+
+        $currency = $moneyArray[0]->getCurrency();
+        $total = self::total($moneyArray);
+        $count = count($moneyArray);
+
+        return $total->divide(self::fromFloat($count, $currency));
+    }
+
+    /**
+     * Assert that all Money objects in the array have the same currency.
+     *
+     * @param Money[] $moneyArray
+     * @return void
+     */
+    private static function assertSameCurrencyArray(array $moneyArray): void
+    {
+        $currency = $moneyArray[0]->getCurrency();
+
+        foreach ($moneyArray as $money) {
+            if ($money->getCurrency() !== $currency) {
+                throw new InvalidArgumentException('All Money objects must have the same currency.');
+            }
+        }
+    }
 }

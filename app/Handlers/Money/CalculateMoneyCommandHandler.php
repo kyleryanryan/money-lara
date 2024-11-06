@@ -11,20 +11,17 @@ class CalculateMoneyCommandHandler
 {
     public function __invoke(CalculateMoneyCommand $command): MoneyStatisticsResponse
     {
-        $moneyValues = collect($command->getMoneyValues());
+        $moneyValues = $command->getMoneyValues();
 
-        $currency = $moneyValues->first()->getCurrency();
-        $total = $moneyValues->reduce(fn($carry, $money) => $carry->add($money), Money::fromInt(0, $currency));
-        $lowest = $moneyValues->min(fn($money) => $money->getAmount());
-        $highest = $moneyValues->max(fn($money) => $money->getAmount());
+        $total = Money::total($moneyValues);
+        $lowest = Money::lowest($moneyValues);
+        $highest = Money::highest($moneyValues);
+        $average = Money::average($moneyValues);
 
-        $average = $total->divide(Money::fromFloat(count($moneyValues), $currency));
-
-        
         return new MoneyStatisticsResponse([
             'total' => $total,
-            'lowest' => Money::fromInt($lowest, $currency),
-            'highest' => Money::fromInt($highest, $currency),
+            'lowest' => $lowest,
+            'highest' => $highest,
             'average' => $average,
         ]);
     }
