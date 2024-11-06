@@ -37,7 +37,7 @@ class Money
         return $this->remainder;
     }
 
-    public function setRemainder(string $remainder): void
+    private function setRemainder(string $remainder): void
     {
         $this->remainder = $remainder;
     }
