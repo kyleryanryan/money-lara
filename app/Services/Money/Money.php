@@ -21,43 +21,89 @@ class Money
     ){
     }
 
+    /**
+     * Convert float or unscaled integer to Money.
+     * 
+     * @param float $value
+     * @param Currency $currency
+     * @return static
+     */
     public static function fromFloat(float $value, Currency $currency): static
     {
         $amount = NumberHelper::floatToInt($value, self::STORAGE_PRECISION);
         return new static(amount: $amount, currency: $currency);
     }
 
+    /**
+     * Convert integer to Money.(already scaled to storage precision)
+     * 
+     * @param int $value
+     * @param Currency $currency
+     * @return static
+     */
     public static function fromInt(int $value, Currency $currency): static
     {
         return new static(amount: $value, currency: $currency);
     }
 
+    /**
+     * Return the remainder from calculations in money object to the other
+     * 
+     * @return string
+     */
     public function getRemainder(): string
     {
         return $this->remainder;
     }
 
+    /**
+     * Set the remainder from calculations in money object to the other
+     * Can only be set after calculations and cannot be initialized
+     * 
+     * @param string $remainder
+     */
     private function setRemainder(string $remainder): void
     {
         $this->remainder = $remainder;
     }
 
+    /**
+     * Get the currency of the money object
+     * 
+     * @return Currency
+     */
     public function getCurrency(): Currency
     {
         return $this->currency;
     }
 
+    /**
+     * Get the amount of the money object
+     * 
+     * @return int
+     */
     public function getAmount(): int
     {
         return $this->amount;
     }
 
+    /**
+     * Display the amount in correct format(final amount) within currency decimal places
+     * 
+     * @return string
+     */
     public function displayAmount(): string
     {
         $floatAmount = NumberHelper::intToFloat($this->getAmount(), self::STORAGE_PRECISION, $this->currency->decimals());
         return number_format($floatAmount, $this->currency->decimals());
     }
 
+    /**
+     * Add two money objects
+     * 
+     * @param Money $other
+     * @return static
+     */
     public function add(Money $other): static
     {
         $this->assertSameCurrency($other);
@@ -77,6 +123,12 @@ class Money
         return $result;
     }
 
+    /**
+     * Subtract two money objects
+     * 
+     * @param Money $other
+     * @return static
+     */
     public function subtract(Money $other): static
     {
         $this->assertSameCurrency($other);
@@ -96,6 +148,12 @@ class Money
         return $result;
     }
 
+    /**
+     * Multiply two money objects
+     * 
+     * @param Money $factor
+     * @return static
+     */
     public function multiply(Money $factor): static
     {
         $this->assertSameCurrency($factor);
@@ -114,6 +172,12 @@ class Money
         return $result;
     }
 
+    /**
+     * Divide two money objects
+     * 
+     * @param Money $divisor
+     * @return static
+     */
     public function divide(Money $divisor): static
     {
         $this->assertSameCurrency($divisor);
@@ -136,6 +200,12 @@ class Money
         return $result;
     }
 
+    /**
+     * Calculate the percentage of the money object
+     * 
+     * @param float $percentage
+     * @return static
+     */
     public function discount(float $percentage): static
     {
         $factor = 1 - ($percentage / 100);
@@ -145,6 +215,12 @@ class Money
         return $this->multiply($factorMoney);
     }
 
+    /**
+     * Convert the money object to another currency
+     * 
+     * @param Currency $toCurrency
+     * @return static
+     */
     public function convert(Currency $toCurrency): static
     {
         if ($this->currency === $toCurrency) {
@@ -178,6 +254,11 @@ class Money
         return self::fromInt($storedAmount, $currency);
     }
 
+    /**
+     * Check if money objects have same currency
+     * 
+     * @return void
+     */
     protected function assertSameCurrency(Money $other): void
     {
         if ($this->currency !== $other->getCurrency()) {
