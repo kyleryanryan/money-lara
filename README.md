@@ -12,6 +12,7 @@ DB_PASSWORD=root
 
 ## Running the application
 ```
+docker compose up -d
 docker exec -it app bash
 composer install
 php artisan key:generate

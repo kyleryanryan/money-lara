@@ -6,6 +6,7 @@ services:
       context: .
       dockerfile: Dockerfile
     container_name: laravel_app
+    platform: linux/amd64 
     ports:
       - "5173:5173"  # Expose Vite dev server port
       - "8000:80"    # Laravel app port
@@ -16,6 +17,7 @@ services:
 
   web:
     image: nginx:alpine
+    platform: linux/amd64
     container_name: laravel_web
     ports:
       - "8080:80"
@@ -29,6 +31,7 @@ services:
 
   db:
     image: mysql:5.7
+    platform: linux/amd64 
     container_name: laravel_db
     environment:
       MYSQL_DATABASE: laravel
