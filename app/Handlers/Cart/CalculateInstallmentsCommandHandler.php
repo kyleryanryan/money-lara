@@ -30,16 +30,19 @@ class CalculateInstallmentsCommandHandler
             }
             $totalMoney = $totalMoney->add($product->getMoney());
         }
-      
+
         $termMoney = Money::fromFloat($command->getInstallments(), $currency);
         $baseInstallmentMoney = $totalMoney->divide($termMoney);
-        $totalBaseInstallment = $baseInstallmentMoney->multiply($termMoney);
+        $finalBaseMoney = Money::fromFloat((float)$baseInstallmentMoney->displayAmount(), $currency);
+        
+        $totalBaseInstallment = $finalBaseMoney->multiply($termMoney);
+
         $remainder = $totalMoney->subtract($totalBaseInstallment);
 
         $installments = [];
         for ($i = 0; $i < $command->getInstallments(); $i++) {
             if(($command->getInstallments() - 1) === $i){
-                $installment = $baseInstallmentMoney->add($this->getRemainderBalance($remainder, $currency));
+                $installment = $finalBaseMoney->add($remainder);
                 $installments[] = $installment->displayAmount() . ' ' . $currency->symbol();
             }
             else{
@@ -52,13 +55,5 @@ class CalculateInstallmentsCommandHandler
             'installments' => $command->getInstallments(),
             'installmentBreakdown' => $installments,
         ]);
-    }
-
-    private function getRemainderBalance(Money $remainder, Currency $currency): Money
-    {
-        $remainder = "0.{$remainder->getRemainder()}";
-        $balance = bcmul($remainder, pow(10, Money::REMAINDER_PRECISION + Money::STORAGE_PRECISION - $currency->decimals()), $currency->decimals());
-
-        return Money::fromInt($balance, $currency);
     }
 }
