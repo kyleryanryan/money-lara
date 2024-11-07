@@ -32,6 +32,6 @@ class Product extends Model
      */
     public function getMoney(): Money
     {
-        return Money::fromStoredAmount($this->price, Currency::from($this->currency));
+        return Money::fromScaledInt($this->price, Currency::from($this->currency));
     }
 }

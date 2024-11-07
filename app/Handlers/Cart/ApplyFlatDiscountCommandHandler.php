@@ -25,7 +25,7 @@ class ApplyFlatDiscountCommandHandler
 
         $firstProduct = $products->first();
         $currency = Currency::from($firstProduct->currency);
-        $totalMoney = Money::fromInt(0, $currency);
+        $totalMoney = Money::fromScaledInt(0, $currency);
 
         $productList = [];
 

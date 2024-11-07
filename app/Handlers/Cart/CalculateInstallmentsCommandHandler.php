@@ -22,7 +22,7 @@ class CalculateInstallmentsCommandHandler
 
         $firstProduct = $products->first();
         $currency = Currency::from($firstProduct->currency);
-        $totalMoney = Money::fromInt(0, $currency);
+        $totalMoney = Money::fromScaledInt(0, $currency);
 
         foreach ($products as $product) {
             if($product->currency !== $firstProduct->currency){
@@ -30,13 +30,11 @@ class CalculateInstallmentsCommandHandler
             }
             $totalMoney = $totalMoney->add($product->getMoney());
         }
-
         $termMoney = Money::fromFloat($command->getInstallments(), $currency);
         $baseInstallmentMoney = $totalMoney->divide($termMoney);
-        $finalBaseMoney = Money::fromFloat((float)$baseInstallmentMoney->displayAmount(), $currency);
-        
-        $totalBaseInstallment = $finalBaseMoney->multiply($termMoney);
 
+        $finalBaseMoney = Money::fromFloat((float)$baseInstallmentMoney->displayAmount(), $currency);
+        $totalBaseInstallment = $finalBaseMoney->multiply($termMoney);
         $remainder = $totalMoney->subtract($totalBaseInstallment);
 
         $installments = [];
