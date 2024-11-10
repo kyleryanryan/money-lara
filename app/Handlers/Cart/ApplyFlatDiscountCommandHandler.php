@@ -30,15 +30,11 @@ class ApplyFlatDiscountCommandHandler
         $productList = [];
 
         foreach ($products as $product) {
-            if (Currency::from($product->currency) !== $currency) {
-                throw new InvalidArgumentException('All products must have the same currency.');
-            }
-
             $productMoney = $product->getMoney();
             $productList[] = [
                 'id' => $product->id,
                 'name' => $product->name,
-                'price' => $productMoney->displayAmount() . ' ' . $productMoney->getCurrency()->symbol(),
+                'price' => $productMoney->formatAmountWithSymbol(),
             ];
 
             $totalMoney = $totalMoney->add($productMoney);
@@ -51,7 +47,7 @@ class ApplyFlatDiscountCommandHandler
             'products' => $productList,
             'subTotal' => $totalMoney,
             'total' => $discountedTotal,
-            'discount' => $discountMoney->displayAmount() . ' ' . $currency->symbol(),
+            'discount' => $discountMoney->formatAmountWithSymbol(),
         ];
 
         return new DiscountedCartResponse($responseData);

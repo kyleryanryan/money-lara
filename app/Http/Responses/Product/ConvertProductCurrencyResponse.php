@@ -19,7 +19,7 @@ class ConvertProductCurrencyResponse extends JsonResource
 
     public function getOriginalPrice(): string
     {
-        return $this->resource['originalPrice']->displayAmount() . ' ' . $this->resource['originalPrice']->getCurrency()->symbol();
+        return $this->resource['originalPrice']->formatAmountWithSymbol();
     }
 
     public function getOriginalPriceInternal(): int
@@ -29,7 +29,7 @@ class ConvertProductCurrencyResponse extends JsonResource
 
     public function getConvertedPrice(): string
     {
-        return $this->resource['convertedPrice']->displayAmount() . ' ' . $this->resource['convertedPrice']->getCurrency()->symbol();
+        return $this->resource['convertedPrice']->formatAmountWithSymbol();
     }
 
     public function getConvertedPriceInternal(): int

@@ -25,15 +25,13 @@ class CalculateInstallmentsCommandHandler
         $totalMoney = Money::fromScaledInt(0, $currency);
 
         foreach ($products as $product) {
-            if($product->currency !== $firstProduct->currency){
-                throw new InvalidArgumentException('All products must have the same currency.');
-            }
             $totalMoney = $totalMoney->add($product->getMoney());
         }
+
         $termMoney = Money::fromFloat($command->getInstallments(), $currency);
         $baseInstallmentMoney = $totalMoney->divide($termMoney);
 
-        $finalBaseMoney = Money::fromFloat((float)$baseInstallmentMoney->displayAmount(), $currency);
+        $finalBaseMoney = Money::fromFloat((float)$baseInstallmentMoney->getFinalAmount(), $currency);
         $totalBaseInstallment = $finalBaseMoney->multiply($termMoney);
         $remainder = $totalMoney->subtract($totalBaseInstallment);
 
@@ -41,10 +39,10 @@ class CalculateInstallmentsCommandHandler
         for ($i = 0; $i < $command->getInstallments(); $i++) {
             if(($command->getInstallments() - 1) === $i){
                 $installment = $finalBaseMoney->add($remainder);
-                $installments[] = $installment->displayAmount() . ' ' . $currency->symbol();
+                $installments[] = $installment->formatAmountWithSymbol();
             }
             else{
-                $installments[] = $baseInstallmentMoney->displayAmount() . ' ' . $currency->symbol();
+                $installments[] = $baseInstallmentMoney->formatAmountWithSymbol();
             }
         }
  

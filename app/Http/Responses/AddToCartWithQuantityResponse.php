@@ -28,7 +28,7 @@ class AddToCartWithQuantityResponse extends JsonResource
 
     public function getUnitPrice(): string
     {
-        return $this->resource['unitPrice']->displayAmount();
+        return $this->resource['unitPrice']->formatAmountWithSymbol();
     }
 
     public function getQuantity(): int
@@ -38,7 +38,7 @@ class AddToCartWithQuantityResponse extends JsonResource
 
     public function getTotalPrice(): string
     {
-        return $this->resource['totalPrice']->displayAmount();
+        return $this->resource['totalPrice']->formatAmountWithSymbol();
     }
 
     public function getCurrency(): string

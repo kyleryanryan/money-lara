@@ -34,7 +34,7 @@ class CreateProductResponse extends JsonResource
 
     public function getPrice(): string
     {
-        return $this->resource['money']->displayAmount();
+        return $this->resource['money']->formatAmountWithSymbol();
     }
 
     public function getCurrency(): ?string

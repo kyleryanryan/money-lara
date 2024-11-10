@@ -24,13 +24,13 @@ class DiscountedCartResponse extends JsonResource
     public function getSubTotal(): string
     {
         $subTotalMoney = $this->resource['subTotal'];
-        return $subTotalMoney->displayAmount() . ' ' . $subTotalMoney->getCurrency()->symbol();
+        return $subTotalMoney->formatAmountWithSymbol();
     }
 
     public function getTotal(): string
     {
         $totalMoney = $this->resource['total'];
-        return $totalMoney->displayAmount() . ' ' . $totalMoney->getCurrency()->symbol();
+        return $totalMoney->formatAmountWithSymbol();
     }
 
     public function getDiscount(): string

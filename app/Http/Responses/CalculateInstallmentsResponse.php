@@ -17,7 +17,7 @@ class CalculateInstallmentsResponse extends JsonResource
 
     public function getTotal(): string
     {
-        return $this->resource['total']->displayAmount() . ' ' . $this->resource['total']->getCurrency()->symbol();
+        return $this->resource['total']->formatAmountWithSymbol();
     }
 
     public function getInstallments(): int

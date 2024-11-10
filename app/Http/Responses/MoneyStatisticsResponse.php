@@ -18,21 +18,21 @@ class MoneyStatisticsResponse extends JsonResource
 
     public function getTotal(): string
     {
-        return $this->resource['total']->displayAmount() . ' ' . $this->resource['total']->getCurrency()->symbol();
+        return $this->resource['total']->formatAmountWithSymbol();
     }
 
     public function getLowest(): string
     {
-        return $this->resource['lowest']->displayAmount() . ' ' . $this->resource['lowest']->getCurrency()->symbol();
+        return $this->resource['lowest']->formatAmountWithSymbol();
     }
 
     public function getHighest(): string
     {
-        return $this->resource['highest']->displayAmount() . ' ' . $this->resource['highest']->getCurrency()->symbol();
+        return $this->resource['highest']->formatAmountWithSymbol();
     }
 
     public function getAverage(): string
     {
-        return $this->resource['average']->displayAmount() . ' ' . $this->resource['average']->getCurrency()->symbol();
+        return $this->resource['average']->formatAmountWithSymbol();
     }
 }

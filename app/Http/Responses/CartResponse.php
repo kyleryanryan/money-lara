@@ -22,6 +22,6 @@ class CartResponse extends JsonResource
     public function getTotal(): string
     {
         $totalMoney = $this->resource['total'];
-        return $totalMoney->displayAmount() . ' ' . $totalMoney->getCurrency()->symbol();
+        return $totalMoney->formatAmountWithSymbol();
     }
 }

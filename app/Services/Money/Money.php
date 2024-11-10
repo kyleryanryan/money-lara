@@ -13,7 +13,7 @@ class Money
 {
     public const STORAGE_PRECISION = 6;
     private const REMAINDER_PRECISION = 2;
-    private string $remainder = '0';
+    protected int $remainder = 0;
 
     public function __construct(
         private int $amount,
@@ -51,7 +51,7 @@ class Money
      * 
      * @return string
      */
-    public function getRemainder(): string
+    public function getRemainder(): int
     {
         return $this->remainder;
     }
@@ -60,9 +60,9 @@ class Money
      * Set the remainder from calculations in money object to the other
      * Can only be set after calculations and cannot be initialized
      * 
-     * @param string $remainder
+     * @param int $remainder
      */
-    private function setRemainder(string $remainder): void
+    protected function setRemainder(int $remainder): void
     {
         $this->remainder = $remainder;
     }
@@ -92,10 +92,21 @@ class Money
      * 
      * @return string
      */
-    public function displayAmount(): string
+    public function getFinalAmount(): string
     {
         $floatAmount = NumberHelper::intToFloat($this->getAmount(), self::STORAGE_PRECISION, $this->currency->decimals());
         return number_format($floatAmount, $this->currency->decimals());
+    }
+
+
+    /**
+     * Get the amount in correct format(final amount) with currency
+     * 
+     * @return string
+     */
+    public function formatAmountWithSymbol(): string
+    {
+        return $this->getFinalAmount() . ' ' . $this->currency->symbol();
     }
 
     /**
@@ -120,7 +131,7 @@ class Money
     public function subtract(Money $other): static
     {
         $this->assertSameCurrency($other);
-        $difference = bcsub($this->getFormattedAmountWithRemainder(), $other->getFormattedAmountWithRemainder(), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
+        $difference = bcsub($this->getFormattedAmountWithRemainder(), $other->getFormattedAmountWithRemainder(), self::REMAINDER_PRECISION);
         return $this->setFromResult($difference);
     }
 
@@ -134,10 +145,10 @@ class Money
     {
         $this->assertSameCurrency($factor);
 
-        $product = bcmul($this->getFormattedAmountWithRemainder(), $factor->getFormattedAmountWithRemainder(), self::REMAINDER_PRECISION);
-        $scaledProduct = bcdiv($product, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION);
+        $result = bcmul($this->getFormattedAmountWithRemainder(), $factor->getFormattedAmountWithRemainder(), self::REMAINDER_PRECISION);
+        $scaledResult = bcdiv($result, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION);
         
-        return $this->setFromResult($scaledProduct);
+        return $this->setFromResult($scaledResult);
     }
 
 
@@ -156,7 +167,7 @@ class Money
         }
 
         $quotient = bcdiv($this->getFormattedAmountWithRemainder(), $divisor->getFormattedAmountWithRemainder(), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
-        $scaledQuotient = bcmul($quotient, (string)pow(10, self::STORAGE_PRECISION), self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
+        $scaledQuotient = bcmul($quotient, (string)pow(10, self::STORAGE_PRECISION), self::REMAINDER_PRECISION);
         
         return $this->setFromResult($scaledQuotient);
     }
@@ -198,7 +209,7 @@ class Money
             (string)$rates['rates'][$this->currency->value], 
             self::STORAGE_PRECISION + self::REMAINDER_PRECISION
         );
-        $convertedAmount = bcmul($baseAmount, (string)$rates['rates'][$toCurrency->value], self::STORAGE_PRECISION + self::REMAINDER_PRECISION);
+        $convertedAmount = bcmul($baseAmount, (string)$rates['rates'][$toCurrency->value], self::REMAINDER_PRECISION);
     
         return $this->setFromResult($convertedAmount, $toCurrency);
     }
@@ -207,9 +218,9 @@ class Money
      * Calculate the total of an array of Money objects.
      *
      * @param Money[] $moneyArray
-     * @return Money
+     * @return static
      */
-    public static function total(array $moneyArray): Money
+    public static function total(array $moneyArray): static
     {
         self::assertSameCurrencyArray($moneyArray);
 
@@ -221,9 +232,9 @@ class Money
      * Get the lowest value in an array of Money objects.
      *
      * @param Money[] $moneyArray
-     * @return Money
+     * @return static
      */
-    public static function lowest(array $moneyArray): Money
+    public static function lowest(array $moneyArray): static
     {
         self::assertSameCurrencyArray($moneyArray);
 
@@ -237,9 +248,9 @@ class Money
      * Get the highest value in an array of Money objects.
      *
      * @param Money[] $moneyArray
-     * @return Money
+     * @return static
      */
-    public static function highest(array $moneyArray): Money
+    public static function highest(array $moneyArray): static
     {
         self::assertSameCurrencyArray($moneyArray);
 
@@ -253,9 +264,9 @@ class Money
      * Calculate the average of an array of Money objects.
      *
      * @param Money[] $moneyArray
-     * @return Money
+     * @return static
      */
-    public static function average(array $moneyArray): Money
+    public static function average(array $moneyArray): static
     {
         self::assertSameCurrencyArray($moneyArray);
 
@@ -286,9 +297,11 @@ class Money
      */
     private static function assertSameCurrencyArray(array $moneyArray): void
     {
+        $firstMoney = $moneyArray[0];
+
         /** @var Money $money */
         foreach ($moneyArray as $money) {
-            $money->assertSameCurrency($money);
+            $firstMoney->assertSameCurrency($money);
         }
     }
 
@@ -296,7 +309,7 @@ class Money
     {
         [$integerPart, $fractionalPart] = explode('.', $result . '.0');
         $newMoney = self::fromScaledInt((int)$integerPart, $currency ?? $this->currency);
-        $newMoney->setRemainder(rtrim($fractionalPart, '0'));
+        $newMoney->setRemainder((int)rtrim($fractionalPart, '0'));
         return $newMoney;
     }
 
